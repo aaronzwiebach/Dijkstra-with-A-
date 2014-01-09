@@ -1,0 +1,104 @@
+"""N will be a list of tuples describing neurons                                    ##
+##   Each neuron is a list containing an integer ID and a 3D position               ##
+##   e.g. (0, (23.949,28.8538,-92.85773))                                           ##
+## A will be list describing axons                                                  ##
+##   Each axon is a list containing the ID of the parent, the ID of the child,      ##
+##   the travel time, and the cognitive coefficient, e.g. (3, 5, 12.948, -1.848)
+   Motor is the ID of the Neuron that you know and would like to calculate the shortest
+   distance to.                                                                     ##
+## Returned result should be a list of (ID, voltage, time) tuples, each             ##
+##   representing the voltage and activation time of neuron ID.  You can order the  ##
+##   list in any order.                                                             ##
+##  e.g. ((0,1,0),(1,3.884,1.283),(2,-3.923,1.733))
+  """
+
+
+
+
+
+
+""" Method Calculates the 3-D Euclidean Distance between any two coordinates."""
+def euclideandistance(tuple1, tuple2):
+    return math.sqrt(((tuple1[0]-tuple2[0])**2)+((tuple1[1]-tuple2[1])**2)+((tuple1[2]-tuple2[2])**2))
+
+
+
+"""Method get's the 3-D caertesian coordinates of any Neuron(i.e. vertex in the graph)""" 
+def getcoords(N, index):
+    element= N[index]
+    coords= element[1]
+    coordlist=(coords[0], coords[1], coords[2])
+    return coordlist
+
+
+
+""" Method implement's Dijkstra's Algorithm using A-Star in order to find shortest path faster. The heuristic used 
+in this implementation is 3-D Euclidean Distance"""
+
+def Compute_Motor_Voltage(N, A, motor):
+    parentneuron= axon[0]
+    childneuron= axon[1]
+    timetravel=axon[2]
+    cognitivecoefficient=axon[3] #edge cost
+    voltages={}
+    neuronzero= N[0]
+    priorityqueue= hashDictionary() #Initialize the graph
+    for neuron in N[1:]:
+        #We insert every neuron in N into the graph, and we initialize the "time-travel cost" of getting to any given neuron equal to infinity.
+        priorityqueue.insert(neuron[0], float('inf'), (float('inf'), float('inf'),None))# (id, cost, (voltage, time, parent))
+    priorityqueue.insert(neuronzero[0], 0, (1,0))#Initialize "time-travel cost" of the start neruon== 0
+    
+    astar=[]
+    axonedgedict={}
+    for axon in A:
+        parent= parentneuron #Parent neuron
+        child= childneuron #Child neuron
+        motorcoords= getcoords(N, motor) #Coordinates of the neuron that we are trying to find the shortest path to.
+        parentcoords = getcoords(N,parentneuron) #Coordinates of the parent neuron
+        childcoords= getcoords(N, childneuron)#Coordinates of the child neuron
+        lamdaparent= euclideandistance(motorcoords,parentcoords) #The heuristic approximation of the distance between the motor neuron and parent
+        lamdachild= euclideandistance(motorcoords,childcoords)#The heuristic approximation of the distance between the motor neuron and child
+        heuristicweight= (timetravel-lamdaparent+lamdachild) #As defined by A-Star the new cost approximation given by the heuristic= edgeweight- parent heuristic+ child heuristic
+        newtuple=(parent, child, heuristicweight, cognitivecoefficient, timetravel) 
+        astar.append(newtuple) #Append the list astar with the newly calculated Axon's
+        axonedgedict[(parent,child)]=[newtuple]
+
+    
+
+    #Here begins the implementation of Dijkstra, now that we have recalculated all the axons valus with our heuritstic, we can run Dijkstra with this
+    #implementation and generate our A-Star result.
+    relaxedneurons=[]
+    blackboxdictionary={0:1}
+    
+    
+    while motor not in relaxedneurons:
+        u=priorityqueue.pop() #Extract the minimum cost neuron
+        relaxedneurons.append(u[0])# Append the neuron-ID to the list of relaxed neurons
+        adjacencylist=[]
+        
+        for axon in astar:
+            if axon[0]==u[0]:
+                adjacencylist.append(axon) #Keep track of adjacent axons (edges)
+
+#Relaxation of adjacent edges
+        for axon in adjacencylist:
+            if axon[2]+priorityqueue.get_cost(parentneuron)<= priorityqueue.get_cost([axon[0]]): #If the heuristic edge weight (btwn parent and child) + "cost" of getting to the parent <= cost of getting to child
+                priorityqueue.decrease_key(axon[1], (priorityqueue.get_cost(u[0])+timetravel), (0, (priorityqueue.get_voltage(axon[0])[1]+ axon[4]), axon[0])) #relax the edge (i.e cost of getting to child ==heuristic edge weight (btwn parent and child) + "cost" of getting to the parent)
+                
+    shortestpath=[motor]
+    currentnode= motor
+    
+    while currentnode !=0: #While the start node is not your motor node (goal vertex)
+        nextnode= priorityqueue.get_voltage(currentnode)[2]
+        shortestpath.append(nextnode) #include the "next node" in as one of the vertices in the shortest path
+        currentnode=nextnode #make your "next node" your current node
+    
+    reversedshortestpath = shortestpath[::-1] #reverse the list so the vertices are in the right order
+    
+    #Along the shortest path we use the BlackBox Method to calculate the volatages of each vertex.
+    for i in range(0, len(reversedshortestpath)-1):
+        parent= reversedshortestpath[i]
+        child= reversedshortestpath[i+1]
+        blackboxdictionary[child]= Blackbox(blackboxdictionary[parent],axonedgedict[(parent,child)][0][3]) 
+
+    return (blackboxdictionary[motor], priorityqueue.get_voltage(motor)[1]) #Return the (voltage, time-travel) of the motor vertex (goal vertex.)
