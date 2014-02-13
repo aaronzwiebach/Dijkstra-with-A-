@@ -45,17 +45,22 @@ usage when implementing the algorithm. I have copied all the code below in this 
 
 CODE PROVIDED BY INSTUCTORS:
 
-## There are 5 public functions in the structure.
-##
-## insert(vertex_id,cost,data) - inserts neuron vertex_id with a specified cost and 
-##    supplemental data into the structure
-## decrease_key(vertex_id,cost,data) - once neuron vertex_id is inserted into the data
-##    structure, you can call decrease_key to reduce the specified cost and replace the
-##    supplemental data
-## pop() - returns a (vertex_id,cost,data) tuple for the minimum cost neuron
-## get_cost(vertex_id) - returns the cost associated with neuron vertex_id.  If vertex_id
-##    does not exist in the data structure, this will return None
-## is_empty() - returns if the data structure is currently storing any neurons
+There are 5 public functions in the structure.
+
+insert(vertex_id,cost,data) - inserts neuron vertex_id with a specified cost and 
+    supplemental data into the structure
+
+decrease_key(vertex_id,cost,data) - once neuron vertex_id is inserted into the data
+structure, you can call decrease_key to reduce the specified cost and replace the supplemental data
+
+pop() - returns a (vertex_id,cost,data) tuple for the minimum cost neuron
+
+get_cost(vertex_id) - returns the cost associated with neuron vertex_id.  If vertex_id
+does not exist in the data structure, this will return None
+
+is_empty() - returns if the data structure is currently storing any neurons
+
+
 
 class hashDictionary():
     def __init__(self):
@@ -133,7 +138,7 @@ class hashDictionary():
         
         
 ## Blackbox function
-## Set local_mode to True for local testing.  Set local_mode to False for online testing.
+Set local_mode to True for local testing.  Set local_mode to False for online testing.
 local_mode = False
 if(local_mode):
   ## Feel free to put a custom local Blackbox function here.
